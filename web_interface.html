@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google APIs Generator - Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #4285f4;
+            padding-bottom: 10px;
+        }
+
+        .api-key-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .api-key-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4285f4;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .api-key-card h3 {
+            color: #4285f4;
+            margin-bottom: 10px;
+        }
+
+        .api-key-display {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .generate-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #4285f4;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285f4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #4285f4;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+        }
+
+        .api-list {
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .api-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .api-item:hover {
+            background: #f0f0f0;
+        }
+
+        .api-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Google APIs Generator</h1>
+            <p>Generate Google API client code and manage API keys</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Statistics -->
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="total-apis">0</h3>
+                    <p>Total APIs</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="total-keys">5</h3>
+                    <p>API Keys</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="generated-count">0</h3>
+                    <p>Generated</p>
+                </div>
+            </div>
+
+            <!-- API Keys Section -->
+            <div class="section">
+                <h2>🔑 Available API Keys</h2>
+                <div id="api-keys-container">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading API keys...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Generation Section -->
+            <div class="section">
+                <h2>🔧 Generate API Code</h2>
+                <form class="generate-form" id="generate-form">
+                    <div class="form-group">
+                        <label for="api-select">Select API:</label>
+                        <select id="api-select" required>
+                            <option value="">Choose an API...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="language-select">Programming Language:</label>
+                        <select id="language-select" required>
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="csharp">C#</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Generate Code</button>
+                </form>
+                <div class="loading" id="generate-loading">
+                    <div class="spinner"></div>
+                    <p>Generating code...</p>
+                </div>
+                <div id="generate-result"></div>
+            </div>
+
+            <!-- Available APIs Section -->
+            <div class="section">
+                <h2>📋 Available Google APIs</h2>
+                <div class="api-list" id="api-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading APIs...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        let generatedCount = 0;
+
+        // Load API Keys
+        async function loadApiKeys() {
+            try {
+                const response = await fetch(`${API_BASE}/api-keys`);
+                const data = await response.json();
+                
+                const container = document.getElementById('api-keys-container');
+                container.innerHTML = '';
+                
+                const grid = document.createElement('div');
+                grid.className = 'api-key-grid';
+                
+                for (const [service, key] of Object.entries(data.api_keys)) {
+                    const card = document.createElement('div');
+                    card.className = 'api-key-card';
+                    card.innerHTML = `
+                        <h3>${service.replace(/_/g, ' ').toUpperCase()}</h3>
+                        <div class="api-key-display">${key}</div>
+                        <button class="btn" onclick="copyApiKey('${key}')">Copy Key</button>
+                    `;
+                    grid.appendChild(card);
+                }
+                
+                container.appendChild(grid);
+                document.getElementById('total-keys').textContent = data.total_keys;
+            } catch (error) {
+                console.error('Error loading API keys:', error);
+                document.getElementById('api-keys-container').innerHTML = 
+                    '<div class="result error">Error loading API keys. Make sure the API server is running.</div>';
+            }
+        }
+
+        // Load Available APIs
+        async function loadApis() {
+            try {
+                const response = await fetch(`${API_BASE}/apis`);
+                const data = await response.json();
+                
+                const select = document.getElementById('api-select');
+                const list = document.getElementById('api-list');
+                
+                // Clear existing options
+                select.innerHTML = '<option value="">Choose an API...</option>';
+                list.innerHTML = '';
+                
+                // Add to select dropdown
+                data.apis.forEach(api => {
+                    const option = document.createElement('option');
+                    option.value = api;
+                    option.textContent = api;
+                    select.appendChild(option);
+                });
+                
+                // Add to list
+                data.apis.forEach(api => {
+                    const item = document.createElement('div');
+                    item.className = 'api-item';
+                    item.textContent = api;
+                    item.onclick = () => {
+                        select.value = api;
+                        select.scrollIntoView({ behavior: 'smooth' });
+                    };
+                    list.appendChild(item);
+                });
+                
+                document.getElementById('total-apis').textContent = data.total_apis;
+            } catch (error) {
+                console.error('Error loading APIs:', error);
+                document.getElementById('api-list').innerHTML = 
+                    '<div class="result error">Error loading APIs. Make sure the API server is running.</div>';
+            }
+        }
+
+        // Generate Code
+        async function generateCode(apiPath, language) {
+            const loading = document.getElementById('generate-loading');
+            const result = document.getElementById('generate-result');
+            
+            loading.style.display = 'block';
+            result.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_BASE}/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        api_path: apiPath,
+                        language: language
+                    })
+                });
+                
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    generatedCount++;
+                    document.getElementById('generated-count').textContent = generatedCount;
+                    
+                    result.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Code Generated Successfully!</h3>
+                            <p><strong>API:</strong> ${apiPath}</p>
+                            <p><strong>Language:</strong> ${language}</p>
+                            <p><strong>Message:</strong> ${data.message}</p>
+                            ${data.api_key ? `<p><strong>API Key:</strong> <code>${data.api_key}</code></p>` : ''}
+                            <p><strong>Generated at:</strong> ${data.generated_at}</p>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Generation Failed</h3>
+                            <p><strong>Error:</strong> ${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                result.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Network Error</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Copy API Key
+        function copyApiKey(key) {
+            navigator.clipboard.writeText(key).then(() => {
+                alert('API key copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        // Form submission
+        document.getElementById('generate-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const apiPath = document.getElementById('api-select').value;
+            const language = document.getElementById('language-select').value;
+            
+            if (apiPath && language) {
+                generateCode(apiPath, language);
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadApiKeys();
+            loadApis();
+        });
+    </script>
+</body>
+</html>
